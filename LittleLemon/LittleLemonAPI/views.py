@@ -18,6 +18,8 @@ def menu_items(request):
         to_price=request.query_params.get('to_price')
         # Searching
         search=request.query_params.get('search')
+        # Ordering
+        ordering=request.query_params.get('ordering')
         # Filtering logic
         if category_name:
             items=items.filter(category__title=category_name)
@@ -27,6 +29,11 @@ def menu_items(request):
         # Searching logic
         if search:
             items=items.filter(title__istartswith=search)
+
+        # Ordering logic
+        if ordering:
+            ordering_fields=ordering.split(",")
+            items=items.order_by(*ordering_fields)
 
         serialized_item=MenuItemSerializer(items,many=True)
         return Response(serialized_item.data)
