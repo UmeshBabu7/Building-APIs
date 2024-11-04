@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
 from .models import MenuItem
 from .serializers import MenuItemSerializer
+from django.core.paginator import Paginator,EmptyPage
 
 # Create your views here.
 
@@ -20,6 +21,12 @@ def menu_items(request):
         search=request.query_params.get('search')
         # Ordering
         ordering=request.query_params.get('ordering')
+
+        # pagination
+        perpage=request.query_params.get('perpage',default=2)
+        page=request.query_params.get('page',default=1)
+
+
         # Filtering logic
         if category_name:
             items=items.filter(category__title=category_name)
@@ -34,6 +41,13 @@ def menu_items(request):
         if ordering:
             ordering_fields=ordering.split(",")
             items=items.order_by(*ordering_fields)
+
+        # Pagination logic
+        paginator=Paginator(items,per_page=perpage)
+        try:
+            items=paginator.page(number=page)
+        except EmptyPage:
+            items=[]
 
         serialized_item=MenuItemSerializer(items,many=True)
         return Response(serialized_item.data)
